@@ -1,0 +1,431 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="sbom">
+        <xs:complexType>
+            <xs:all>
+                <xs:element name="product" type="Product" />
+                <xs:element name="dependencies" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="dependency" type="Dependency" maxOccurs="unbounded" />
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="legalEntities">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="legalEntity" type="LegalEntity" maxOccurs="unbounded" />
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="licenses">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="license" type="License" maxOccurs="unbounded" />
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="trademarks" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="trademark" type="Trademark" maxOccurs="unbounded" />
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:all>
+        </xs:complexType>
+
+        <xs:key name="DependencyKey">
+            <xs:selector xpath="dependencies/dependency" />
+            <xs:field xpath="@id" />
+        </xs:key>
+
+        <xs:key name="LegalEntityKey">
+            <xs:selector xpath="legalEntities/legalEntity" />
+            <xs:field xpath="@id" />
+        </xs:key>
+
+        <xs:key name="LicenseKey">
+            <xs:selector xpath="licenses/license" />
+            <xs:field xpath="@id" />
+        </xs:key>
+
+        <xs:keyref name="LegalEntitySuccessorRef" refer="LegalEntityKey">
+            <xs:selector xpath="legalEntities/legalEntity/defunct/successor" />
+            <xs:field xpath="id" />
+        </xs:keyref>
+
+        <xs:keyref name="TrademarkOwnerRef" refer="LegalEntityKey">
+            <xs:selector xpath="trademarks/trademark/owner" />
+            <xs:field xpath="." />
+        </xs:keyref>
+
+        <xs:keyref name="ProductLicenseRef" refer="LicenseKey">
+            <xs:selector xpath="product/copyright" />
+            <xs:field xpath="@license" />
+        </xs:keyref>
+
+        <xs:keyref name="DependencyLicenseRef" refer="LicenseKey">
+            <xs:selector xpath="dependencies/dependency/copyright" />
+            <xs:field xpath="@license" />
+        </xs:keyref>
+
+        <xs:keyref name="ProductAuthorRef" refer="LegalEntityKey">
+            <xs:selector xpath="product/copyright/author" />
+            <xs:field xpath="." />
+        </xs:keyref>
+
+        <xs:keyref name="DependencyAuthorRef" refer="LegalEntityKey">
+            <xs:selector xpath="dependencies/dependency/copyright/author" />
+            <xs:field xpath="." />
+        </xs:keyref>
+
+        <xs:keyref name="TransitiveDependencyRef" refer="DependencyKey">
+            <xs:selector xpath="dependencies/dependency/dependency" />
+            <xs:field xpath="." />
+        </xs:keyref>
+
+        <xs:unique name="TrademarkUniqueness">
+            <xs:selector xpath="trademarks/trademark/name" />
+            <xs:field xpath="." />
+        </xs:unique>
+    </xs:element>
+
+    <xs:complexType name="Product">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string" />
+            <xs:element name="version" type="xs:string" minOccurs="0" />
+            <xs:element name="description" type="xs:string" />
+            <xs:element name="website" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="source" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="copyright" type="Copyright" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Dependency">
+        <xs:sequence>
+            <!-- TODO: require unless method="provided": version, source, copyright (at least one author) -->
+            <xs:element name="name" type="xs:string" />
+            <xs:element name="version" type="xs:string" minOccurs="0" />
+            <xs:element name="website" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="source" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="location" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="type" default="library" minOccurs="0">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="driver" />
+                        <xs:enumeration value="font" />
+                        <xs:enumeration value="library" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="method">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="static">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    tightly integrated to product, e.g. by static compilation; basically inseparable
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="separate">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    bundled with product; easily separable on file system or in some standard archive
+                                    format (e.g. ZIP/JAR) by being kept in an easily identifiable sub-directory or
+                                    file
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="mixed">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    bundled into product; dependency remains in separate files but cannot be easily
+                                    split/replaced as directory/archive structures are mixed with other contents on same
+                                    level
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="provided">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    dependency does not come bundled with the product but is expected to be provided
+                                    by user/system
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="description" type="xs:string" minOccurs="0" />
+            <xs:element name="excerpt" type="xs:string" minOccurs="0" />
+            <xs:element name="developerRemark" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="activation" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="tag" type="xs:string" maxOccurs="unbounded" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="patch" type="Patch" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="copyright" type="Copyright" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="dependency" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:string" />
+    </xs:complexType>
+
+    <xs:complexType name="Patch">
+        <xs:sequence>
+            <xs:element name="source" type="xs:string" maxOccurs="unbounded" />
+            <xs:element name="description" type="xs:string" />
+            <xs:element name="copyright" type="Copyright" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Copyright">
+        <xs:sequence>
+            <xs:element name="author" type="xs:string" maxOccurs="unbounded" />
+            <xs:element name="combinedAuthors" type="xs:string" minOccurs="0" />
+            <xs:element name="originalRemark" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+        <xs:attribute name="license" type="xs:string" />
+        <xs:attribute name="years" type="CopyrightYears" />
+    </xs:complexType>
+
+    <xs:simpleType name="CopyrightYears">
+        <xs:annotation>
+            <xs:documentation>
+                one or multiple years or year ranges, e.g. "2021", "2021-2025" or "2018, 2020-2022, 2025"
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:pattern value="(\d{4}(|-\d{4}))(,\s*\d{4}(|-\d{4}))*"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="LegalEntity">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string" />
+            <xs:element name="type" type="LegalEntityType" />
+            <xs:element name="contact" type="LegalEntityContact" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="association" minOccurs="0" maxOccurs="unbounded" type="LegalEntityAssociation" />
+            <xs:element name="defunct" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>
+                        Indicates that an entity has ceased to exist under its former identity (e.g. gone out of
+                        business). Enter successor information if its rights were transferred/merged to another entity.
+                        Note that succession recorded here may be incomplete/wrong if documentation is not publicly
+                        available to BOM authors.
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="successor" type="LegalEntitySuccessor" minOccurs="0" maxOccurs="unbounded" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:string" use="required" />
+    </xs:complexType>
+
+    <xs:simpleType name="LegalEntityType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="person">
+                <xs:annotation>
+                    <xs:documentation>
+                        The legal entity is an individual.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="organization">
+                <xs:annotation>
+                    <xs:documentation>
+                        The legal entity is an organization (more than one person acting under a group name;
+                        commercial/corporate or not-for-profit, registered or informal does not matter).
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="LegalEntityContact">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="type" use="required">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="website" />
+                            <xs:enumeration value="email" />
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:attribute>
+                <xs:attribute name="checked" type="xs:date" use="required" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="LegalEntitySuccessor">
+        <xs:sequence>
+            <xs:element name="id" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>
+                        ID of successor entity
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="event">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="acquisition">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    The original entity was acquired by another one.
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="renaming">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    The entity was renamed but otherwise remained the same.
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="date" type="xs:date" minOccurs="0" />
+            <xs:element name="source" type="LegalSource" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="LegalEntityAssociation">
+        <xs:annotation>
+            <xs:documentation>
+                Another entity the surrounding one is associated with.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="type">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="acquired-by">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    Surrounding entity has been acquired by the referenced entity but continues to
+                                    exist under this identity.
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="alias">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    Surrounding entity is also known by another name without discernible difference in
+                                    identity.
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="owns">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    Surrounding entity owns the referenced one.
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="id" type="xs:string" />
+            <xs:element name="from" type="xs:date" minOccurs="0" />
+            <xs:element name="until" type="xs:date" minOccurs="0" />
+            <xs:element name="source" type="LegalSource" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="LegalSource">
+        <xs:annotation>
+            <xs:documentation>
+                source of the surrounding information
+            </xs:documentation>
+        </xs:annotation>
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="checked" type="xs:date" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="License">
+        <xs:all>
+            <xs:element name="standard" type="LicenseStandard" minOccurs="0" />
+            <xs:element name="copy" minOccurs="0">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute name="file" type="xs:string" />
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+        </xs:all>
+        <xs:attribute name="id" type="xs:string" />
+    </xs:complexType>
+
+    <xs:complexType name="LicenseStandard">
+        <xs:sequence>
+            <xs:element name="variation" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+        <xs:attribute name="spdx" type="xs:string" />
+    </xs:complexType>
+
+    <xs:complexType name="Trademark">
+        <xs:sequence>
+            <xs:element name="name" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute name="mark">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="none">
+                                            <xs:annotation>
+                                                <xs:documentation>
+                                                    trademark does not need to be marked
+                                                </xs:documentation>
+                                            </xs:annotation>
+                                        </xs:enumeration>
+                                        <xs:enumeration value="reg">
+                                            <xs:annotation>
+                                                <xs:documentation>
+                                                    trademark should be marked by circled R
+                                                </xs:documentation>
+                                            </xs:annotation>
+                                        </xs:enumeration>
+                                        <xs:enumeration value="tm">
+                                            <xs:annotation>
+                                                <xs:documentation>
+                                                    trademark should be marked by TM
+                                                </xs:documentation>
+                                            </xs:annotation>
+                                        </xs:enumeration>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:attribute>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="owner" type="TrademarkOwner" maxOccurs="unbounded" />
+            <xs:element name="display" type="xs:string" />
+            <xs:element name="source" type="LegalSource" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="TrademarkOwner">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="expiration" type="xs:date" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+</xs:schema>
