@@ -6,6 +6,8 @@ This project provides an XSD (XML Schema Definition) to manually create your own
 
 More documentation and some tooling will follow; the project has only been started but published early to already be easily downloadable as a sub-module. The format/XSD is highly unfinished; please don't rely on the format just yet.
 
+Official repositories are hosted on [Codeberg](https://codeberg.org/dneuge/simple-sbom) and [GitHub](https://github.com/dneuge/simple-sbom). Both locations are kept in sync and can be used to submit pull requests but issues are only tracked on [Codeberg](https://codeberg.org/dneuge/simple-sbom/issues) to gather them in a single place. Please note that this project has a strict "no AI" policy affecting all contributions incl. issue reports (see below, AI is not permitted to be used for *any* kind of contribution).
+
 ## License
 
 All sources and original files of this project are provided under [MIT license](LICENSE.md), unless declared otherwise
