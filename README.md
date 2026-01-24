@@ -1,5 +1,8 @@
 # Simple SBOM
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
+[![Issue Tracking: Codeberg](https://img.shields.io/badge/issue%20tracking-codeberg-2684cf)](https://codeberg.org/dneuge/simple-sbom/issues)
+
 You want to keep track, semi-machine-readable, of your project's dependencies and licenses but need to manually edit the file because there's no proper package management for your project and standard SBOM tools don't provide the output you're looking for? Then maybe this little project can help, which was created to keep track of a C project with manually managed dependencies.
 
 This project provides an XSD (XML Schema Definition) to manually create your own SBOM, describing your own project as well as its dependencies, authors, licenses and trademarks.
