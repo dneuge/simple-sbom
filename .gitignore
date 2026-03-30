@@ -1,0 +1,11 @@
+*~
+*.kate-swp
+\#*\#
+.\#*
+
+*.bak
+
+.idea
+
+*.nocommit
+*.nocommit.*
