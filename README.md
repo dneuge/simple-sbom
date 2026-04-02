@@ -7,6 +7,8 @@ You want to keep track, semi-machine-readable, of your project's dependencies an
 
 This project provides an XSD (XML Schema Definition) to manually create your own SBOM, describing your own project as well as its dependencies, authors, licenses and trademarks.
 
+A [Python library](python) is also included to load/process SBOM files.
+
 More documentation and some tooling will follow; the project has only been started but published early to already be easily downloadable as a sub-module. The format/XSD is highly unfinished; please don't rely on the format just yet.
 
 Official repositories are hosted on [Codeberg](https://codeberg.org/dneuge/simple-sbom) and [GitHub](https://github.com/dneuge/simple-sbom). Both locations are kept in sync and can be used to submit pull requests but issues are only tracked on [Codeberg](https://codeberg.org/dneuge/simple-sbom/issues) to gather them in a single place. Please note that this project has a strict "no AI" policy affecting all contributions incl. issue reports (see below, AI is not permitted to be used for *any* kind of contribution).
