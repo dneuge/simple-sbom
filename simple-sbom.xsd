@@ -350,7 +350,7 @@
         </xs:annotation>
         <xs:simpleContent>
             <xs:extension base="xs:string">
-                <xs:attribute name="checked" type="xs:date" />
+                <xs:attribute name="checked" type="xs:date" use="required" />
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
