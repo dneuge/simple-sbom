@@ -172,7 +172,7 @@
             <xs:element name="copyright" type="Copyright" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="dependency" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
-        <xs:attribute name="id" type="xs:string" />
+        <xs:attribute name="id" type="xs:string" use="required" />
     </xs:complexType>
 
     <xs:complexType name="Patch">
@@ -368,14 +368,14 @@
                 </xs:complexType>
             </xs:element>
         </xs:all>
-        <xs:attribute name="id" type="xs:string" />
+        <xs:attribute name="id" type="xs:string" use="required" />
     </xs:complexType>
 
     <xs:complexType name="LicenseStandard">
         <xs:sequence>
             <xs:element name="variation" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
-        <xs:attribute name="spdx" type="xs:string" />
+        <xs:attribute name="spdx" type="xs:string" use="required" />
     </xs:complexType>
 
     <xs:complexType name="Trademark">
@@ -384,7 +384,7 @@
                 <xs:complexType>
                     <xs:simpleContent>
                         <xs:extension base="xs:string">
-                            <xs:attribute name="mark">
+                            <xs:attribute name="mark" use="required">
                                 <xs:simpleType>
                                     <xs:restriction base="xs:string">
                                         <xs:enumeration value="none">
