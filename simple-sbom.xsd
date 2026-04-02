@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='utf-8' ?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <!-- FIXME: document all definitions; compare with parser documentation -->
+    <!-- FIXME: document that legal entity associations make no sense to be inverted (example: a person linked as company owner may not have acquired but founded a business) -->
     <xs:element name="sbom">
         <xs:complexType>
             <xs:all>
@@ -159,7 +161,7 @@
                 </xs:simpleType>
             </xs:element>
             <xs:element name="description" type="xs:string" minOccurs="0" />
-            <xs:element name="excerpt" type="xs:string" minOccurs="0" />
+            <xs:element name="excerpt" type="xs:string" minOccurs="0" /> <!-- excerpt = description of a specific part being used from a greater source tree -->
             <xs:element name="developerRemark" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="activation" minOccurs="0">
                 <xs:complexType>
@@ -217,7 +219,8 @@
                         Indicates that an entity has ceased to exist under its former identity (e.g. gone out of
                         business). Enter successor information if its rights were transferred/merged to another entity.
                         Note that succession recorded here may be incomplete/wrong if documentation is not publicly
-                        available to BOM authors.
+                        available to BOM authors. Declare an "association" with "acquired-by" instead in case the entity
+                        continues business under this identity,
                     </xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
@@ -314,7 +317,8 @@
                             <xs:annotation>
                                 <xs:documentation>
                                     Surrounding entity has been acquired by the referenced entity but continues to
-                                    exist under this identity.
+                                    exist under this identity. If it ceases business, indicate it as "defunct" with
+                                    "successor" instead.
                                 </xs:documentation>
                             </xs:annotation>
                         </xs:enumeration>
@@ -329,7 +333,8 @@
                         <xs:enumeration value="owns">
                             <xs:annotation>
                                 <xs:documentation>
-                                    Surrounding entity owns the referenced one.
+                                    Surrounding entity owns the referenced one. In addition to company acquisitions or
+                                    sub-divisions this relation can also be used to link a person as company owner.
                                 </xs:documentation>
                             </xs:annotation>
                         </xs:enumeration>
@@ -373,6 +378,7 @@
     </xs:complexType>
 
     <xs:complexType name="LicenseStandard">
+        <!-- TODO: validate that standard definition is not entirely empty -->
         <xs:sequence>
             <xs:element name="variation" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
