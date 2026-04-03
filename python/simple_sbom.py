@@ -457,6 +457,9 @@ class TrademarkName:
         self.name: str = _require(_get_text(root))
         self.mark: TrademarkMark | None = TrademarkMark.resolve(_mandatory_attribute(root, 'mark'))
 
+        mark_first_use_only_encoded: str | None = _optional_attribute(root, 'markFirstUseOnly')
+        self.mark_first_use_only: bool | None = mark_first_use_only_encoded.lower() == 'true' if mark_first_use_only_encoded is not None else None
+
     @classmethod
     def parse(cls, root: Element) -> "TrademarkName":
         return cls(root)

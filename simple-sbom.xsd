@@ -418,6 +418,7 @@
                                     </xs:restriction>
                                 </xs:simpleType>
                             </xs:attribute>
+                            <xs:attribute name="markFirstUseOnly" type="xs:boolean" />
                         </xs:extension>
                     </xs:simpleContent>
                 </xs:complexType>
