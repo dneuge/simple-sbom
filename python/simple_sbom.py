@@ -237,15 +237,22 @@ class LegalSource:
         return cls(root)
 
 
-class LegalEntitySuccessor:
+class LegalEntitySuccessor(SBOMLinkable):
+    entity: "LegalEntity"
+
     def __init__(self, root: Element):
-        self.id: str = _exactly_one_text(root, 'id')
         self.event: LegalEntitySuccessorEvent = LegalEntitySuccessorEvent.resolve(_exactly_one_text(root, 'event'))
         self.date: date | None = _parse_date(_optional_attribute(root, 'check'))
         self.sources: list[LegalSource] = [
             LegalSource.parse(elem)
             for elem in _at_least_one_element(root, 'source')
         ]
+
+        # reference will be resolved by post-processing
+        self.__entity_id: str = _exactly_one_text(root, 'id')
+
+    def link_sbom(self, sbom: "SimpleSBOM"):
+        self.entity = sbom.require_legal_entity(self.__entity_id)
 
     @classmethod
     def parse(cls, root: Element) -> "LegalEntitySuccessor":
@@ -362,6 +369,9 @@ class LegalEntity(SBOMLinkable):
     def link_sbom(self, sbom: 'SimpleSBOM'):
         for association in self.associations:
             association.link_sbom(sbom)
+
+        for successor in self.successors:
+            successor.link_sbom(sbom)
 
     @classmethod
     def parse(cls, root: Element) -> "LegalEntity":
