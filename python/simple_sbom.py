@@ -596,6 +596,14 @@ class Dependency(SBOMLinkable):
         for dependency in self.dependencies:
             dependency.record_usage(self)
 
+    def is_active(self, active_tags: Iterable[str]) -> bool | None:
+        required_tags_any = set(self.activation_tags)
+        if len(required_tags_any) == 0:
+            return None
+
+        active_tags = set(active_tags)
+        return not active_tags.isdisjoint(required_tags_any)
+
     @classmethod
     def parse(cls, root: Element, sbom: "SimpleSBOM") -> "Dependency":
         return cls(root, sbom)
