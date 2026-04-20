@@ -391,6 +391,8 @@ class LicenseStandard:
 class License:
     def __init__(self, root: Element, base_dir: str | None = None):
         self.id: str = _mandatory_attribute(root, 'id')
+        self.name: str | None = _optional_attribute(root, 'name')
+        self.short_name: str | None = _optional_attribute(root, 'shortName')
 
         copy_elem = _optional_element(root, 'copy')
         self.text: str | None = _optional_text(root, 'copy')
